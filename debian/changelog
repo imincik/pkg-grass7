@@ -1,3 +1,9 @@
+grass7 (7.0.0-8~precise1) precise; urgency=medium
+
+  * Adding backported tmpdirs patch
+
+ -- Ivan Mincik <ivan.mincik@gmail.com>  Tue, 02 Jun 2015 14:38:11 +0200
+
 grass7 (7.0.0-7~ubuntu12.04.2) precise; urgency=medium
 
   * Remove conflict with grass package, update grass7-core.links
