@@ -1,0 +1,274 @@
+#!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+
+# These are used for cross-compiling and for saving the configure script
+# from having to guess our platform (since we know it already)
+DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+
+VERSION=$(shell echo `head -2 $(CURDIR)/include/VERSION`|sed -e 's/ //')
+ABI=$(shell echo `head -3 $(CURDIR)/include/VERSION`|sed -e 's/ //g' -e 's/RC/-/')
+BASE_NAME=grass$(VERSION)
+PKG_NAME=grass7
+
+CFLAGS=-Wall -g
+
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -O0
+else
+	CFLAGS += -O
+endif
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+	STRIP = 
+else
+	STRIP = strip
+endif
+
+include /usr/share/dpatch/dpatch.make
+
+versions: 
+	@echo "Version: $(VERSION)"
+		@echo "ABI: $(ABI)"
+
+templates: $(patsubst %.in,%,$(wildcard debian/*.in))
+
+debian/% :: debian/%.in
+	sed -e 's/@VERSION@/$(VERSION)/' -e 's/@ABI@/$(ABI)/' $< >$@
+
+configure: patch config.status
+config.status: 
+	dh_testdir
+# Add here commands to configure the package.
+	CFLAGS="$(CFLAGS)" ./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) \
+                    --prefix=/usr/lib \
+                    --sysconfdir=/etc \
+                    --sharedstatedir=/var \
+                    --enable-socket \
+                    --enable-shared \
+                    --with-postgres \
+                    --with-mysql \
+                    --with-cxx \
+                    --with-x \
+                    --with-gdal \
+                    --with-freetype \
+                    --with-motif \
+                    --with-readline \
+                    --with-nls \
+                    --with-odbc \
+                    --with-geos \
+                    --with-lapack \
+                    --with-netcdf \
+                    --with-blas \
+		    --with-sqlite \
+		    --enable-largefile \
+		    --with-freetype-includes=/usr/include/freetype2 \
+                    --with-postgres-includes=$(shell pg_config --includedir) \
+                    --with-mysql-includes=$(shell mysql_config --include|sed -e 's/-I//') \
+		    --with-proj-share=/usr/share/proj \
+		    --with-wxwidgets=/usr/bin/wx-config \
+		    --with-python \
+		    --with-cairo
+
+	touch $@
+
+# This target generates arch-dep stuff, unfortunately most doc requires working bins to 
+# be properly generated...
+build: configure build-stamp
+build-stamp:  
+	dh_testdir
+	$(MAKE) 
+	chmod 755 debian/fixpaths.sh debian/fixscripts.sh
+	touch $@
+
+# This target generates truly arch-indep stuff
+build-indep: configure build-indep-stamp
+build-indep-stamp: 
+	dh_testdir
+	$(MAKE) htmldocs-single
+	touch $@
+
+clean: templates true-clean 
+true-clean:
+	dh_testdir
+	dh_testroot
+
+# Add here commands to clean up after the build process.
+	[ ! -f $(CURDIR)/include/Make/Platform.make ] || $(MAKE) distclean
+
+ifneq "$(wildcard /usr/share/misc/config.sub)" ""
+	[ ! -f $(CURDIR)/configure.in ] || cp -f /usr/share/misc/config.sub config.sub
+endif
+ifneq "$(wildcard /usr/share/misc/config.guess)" ""
+	[ ! -f $(CURDIR)/configure.in ] || cp -f /usr/share/misc/config.guess config.guess
+endif
+	dh_clean 
+
+	rm -f lib/proj/nad2bin
+	rm -f tools/timer/main.o
+#rm -f raster/r.le/r.le.setup/polytocell/*.o
+	rm -f raster/r.terraflow/IOStream/lib/src/libiostream.a
+	rm -f debian/$(BASE_NAME).1
+	rm -f error.log
+# clean doxygen documentation (programming man)
+	rm -rf doxygenhtml lib/vector/html lib/db/html lib/gis/html \
+		lib/vector/latex lib/db/latex lib/gis/latex \
+		lib/g3d/html \
+		lib/ogsf/html \
+		lib/proj/html \
+		lib/gmath/html \
+		lib/segment/html \
+		lib/vector/dglib/html \
+		rfc/html \
+		lib/g3d/latex \
+		lib/ogsf/latex \
+		lib/proj/latex \
+		lib/gmath/latex \
+		lib/segment/latex \
+		lib/vector/dglib/latex \
+		rfc/latex \
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_prep
+	dh_installdirs
+
+# install grass core into debian/tmp
+	$(MAKE) $(STRIP)
+	$(MAKE) install INST_DIR=$(CURDIR)/debian/tmp/usr/lib/$(BASE_NAME) \
+		UNIX_BIN=$(CURDIR)/debian/tmp/usr/bin
+
+# make all the self-bootstrapping tcl/tk scripts executable and fully pathed
+	debian/fixscripts.sh
+
+# fix links
+	debian/fixpaths.sh $(CURDIR)/debian/tmp debian/tmp		
+
+
+
+# delete python compiled bytecode files (maybe dh_python2 takes care of this for us?)
+	for DIR in python/grass \
+		python/grass/lib \
+		python/grass/script \
+		wxpython \
+		wxpython/compat \
+		wxpython/gui_modules \
+		wxpython/icons ; \
+	     do \
+		rm -f debian/tmp/usr/lib/$(BASE_NAME)/gui/$$DIR/*.pyc ; \
+	done
+
+
+
+# change section from 1 to .1grass 
+	mv debian/tmp/usr/lib/$(BASE_NAME)/docs/man/man1/grass7.1 debian/$(BASE_NAME).1
+	for m in debian/tmp/usr/lib/$(BASE_NAME)/docs/man/man1/*.1; do \
+		n=`basename $$m .1`; mv $$m debian/tmp/usr/lib/$(BASE_NAME)/docs/man/man1/$$n.1$(BASE_NAME); done
+	for m in debian/tmp/usr/lib/$(BASE_NAME)/docs/man/man1/*.1$(BASE_NAME); do \
+		sed -i -e 's/^.TH \(.*\) 1/.TH \1 1grass70/' $$m; done
+
+# adjust from build-server build dir to end-user's install dir
+	sed -i -e "s+^\(GRASS_HOME[ ]*=\) .*+\1 /usr/lib/$(BASE_NAME)+" \
+		-e "s+^\(RUN_GISBASE[ ]*=\) .*+\1 /usr/lib/$(BASE_NAME)+" \
+		debian/tmp/usr/lib/$(BASE_NAME)/include/Make/Platform.make
+
+# install helper scripts for building addon man pages
+	install -m 755 debian/tmp/usr/lib/$(BASE_NAME)/tools/mkhtml.py \
+		debian/$(PKG_NAME)-dev/usr/lib/$(BASE_NAME)/tools/mkhtml.py
+	install -m 755 debian/tmp/usr/lib/$(BASE_NAME)/tools/g.html2man.py \
+		debian/$(PKG_NAME)-dev/usr/lib/$(BASE_NAME)/tools/g.html2man.py
+	install -m 755 debian/tmp/usr/lib/$(BASE_NAME)/tools/html.py \
+		debian/$(PKG_NAME)-dev/usr/lib/$(BASE_NAME)/tools/html.py
+	install -m 755 debian/tmp/usr/lib/$(BASE_NAME)/tools/groff.py \
+		debian/$(PKG_NAME)-dev/usr/lib/$(BASE_NAME)/tools/groff.py
+	install -m 755 debian/tmp/usr/lib/$(BASE_NAME)/tools/g.echo \
+		debian/$(PKG_NAME)-dev/usr/lib/$(BASE_NAME)/tools/g.echo
+
+# install pkg-config file
+	install -m 644 grass.pc debian/$(PKG_NAME)-dev/usr/share/pkgconfig/$(BASE_NAME).pc
+
+# install icon file for debian menu system
+	install -d debian/tmp/usr/share/icons \
+		debian/tmp/usr/share/applications \
+		debian/tmp/usr/bin
+# is there a better way to make these exist?
+	mkdir -p debian/tmp/usr/share/icons/hicolor/32x32/apps
+	mkdir -p debian/tmp/usr/share/icons/hicolor/48x48/apps
+	mkdir -p debian/tmp/usr/share/applications
+	install -m 644 debian/$(PKG_NAME).xpm \
+		debian/tmp/usr/share/icons/hicolor/32x32/apps/$(BASE_NAME).xpm
+	install -m 644 gui/icons/grass-48x48.png \
+		debian/tmp/usr/share/icons/hicolor/48x48/apps/$(BASE_NAME).png
+	install -m 644 gui/icons/grass.desktop \
+		debian/tmp/usr/share/applications/$(BASE_NAME).desktop
+# n.b. 6.4.1 shipped with "grass65" as the Exec target
+	sed -i -e 's+/usr/share/icons/grass-48x48.png+$(BASE_NAME)+' \
+		debian/tmp/usr/share/applications/$(BASE_NAME).desktop
+#https://trac.osgeo.org/osgeo/browser/livedvd/gisvm/trunk/bin/install_grass7.sh
+#taken from install script from hamish to fix Exec=grass70
+
+	sed -i -e 's/Icon=grass/Icon=grass70/'   \
+	     -e 's/Exec=grass7/Exec=grass70/'   debian/tmp/usr/share/applications/$(BASE_NAME).desktop
+
+# install x-grass wrapper script
+	install -m 755 debian/x-grass7 debian/tmp/usr/bin/x-$(BASE_NAME)
+
+	ln -fs /usr/lib/$(shell objdump -p /usr/lib/`gdal-config --libs | cut -d' ' -f2 | sed -e 's/-l/lib/'`.so | grep SONAME | cut -d' ' -f18) \
+		debian/tmp/usr/lib/$(BASE_NAME)/lib/libgdal.so
+
+install-indep: build-indep
+	dh_testdir -i
+	dh_testroot -i
+	install -m 644  -d debian/tmp
+	install -m 644  -d debian/tmp/programming-manual/html 
+	install -m 644  -d debian/tmp/programming-manual/html/search
+	cp -r debian/tmp/usr/lib/$(BASE_NAME)/docs/html/* debian/tmp/programming-manual/html/
+#	install -m 644 /html/* debian/tmp/programming-manual/html/
+
+# Build architecture-independent files here.
+binary-indep: install install-indep 
+	dh_testdir -i
+	dh_testroot -i
+	dh_installchangelogs -i CHANGES
+	dh_installdocs -i
+	dh_install -i
+	dh_link -i
+	dh_strip -i
+	dh_compress -i
+	dh_fixperms -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
+
+# Build architecture-dependent files here.
+binary-arch: install
+	dh_testdir -a
+	dh_testroot  -a
+	dh_installchangelogs -a CHANGES
+	dh_installdocs  -a
+	dh_installexamples  -a
+	dh_install -a
+	for COMPONENT in gui wxpython; do \
+		rm -rf debian/$(PKG_NAME)-core/usr/lib/$(BASE_NAME)/$$COMPONENT; \
+	done		
+	dh_installmenu -a
+	dh_installman -p$(PKG_NAME) debian/$(BASE_NAME).1 -a
+	dh_link -a
+	dh_python2
+	dh_python2 /usr/lib/$(BASE_NAME)/gui/
+	dh_strip -a
+	dh_compress -a -XAUTHORS
+	dh_fixperms -a
+	dh_makeshlibs -a -a
+	dh_installdeb -a
+	dh_shlibdeps -a -l$(CURDIR)/debian/tmp/usr/lib/$(BASE_NAME)/lib
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install configure true-clean versions

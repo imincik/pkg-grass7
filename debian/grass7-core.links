@@ -1,0 +1,7 @@
+usr/share/man/man1/grass70.1.gz usr/share/man/man1/x-grass70.1.gz
+usr/share/doc/grass70-core/AUTHORS usr/lib/grass70/AUTHORS
+usr/share/doc/grass70-core/COPYING usr/lib/grass70/COPYING
+usr/share/doc/grass70-core/contributors.csv usr/lib/grass70/contributors.csv
+usr/share/doc/grass70-core/contributors_extra.csv usr/lib/grass70/contributors_extra.csv
+usr/share/doc/grass70-core/translators.csv usr/lib/grass70/translators.csv
+usr/share/common-licenses/GPL-2 usr/lib/grass70/GPL.TXT

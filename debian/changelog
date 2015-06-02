@@ -1,0 +1,17 @@
+grass7 (7.0.0-7~ubuntu12.04.2) precise; urgency=medium
+
+  * Remove conflict with grass package, update grass7-core.links
+
+ -- Martin Landa <landa.martin@gmail.com>  Wed, 25 Feb 2015 21:30:01 +0100
+
+grass7 (7.0.0-6~ubuntu14.10.1) utopic; urgency=medium
+
+  * Fix conflict with grass package
+
+ -- Martin Landa <landa.martin@gmail.com>  Sun, 22 Feb 2015 12:11:15 +0100
+
+grass7 (7.0.0-5~ubuntu14.10.1) utopic; urgency=medium
+
+  * Update package name
+
+ -- Martin Landa <landa.martin@gmail.com>  Sun, 22 Feb 2015 12:11:15 +0100
