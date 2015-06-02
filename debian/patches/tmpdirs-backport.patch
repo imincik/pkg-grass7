@@ -1,48 +1,43 @@
-Index: lib/init/grass.py
-===================================================================
---- lib/init/grass.py	(revision 65348)
-+++ lib/init/grass.py	(working copy)
-@@ -265,8 +265,9 @@
+--- a/lib/init/grass.py
++++ b/lib/init/grass.py
+@@ -265,7 +265,8 @@ def create_tmp():
      if not tmp:
          fatal(_("Unable to create temporary directory <grass7-%(user)s-" \
                  "%(lock)s>! Exiting.") % {'user': user, 'lock': gis_lock})
+-
 +    
 +    os.environ['TMPDIR'] = tmp
  
--
  def create_gisrc():
      global gisrc, gisrcrc
-     # Set the session grassrc file
-@@ -1352,18 +1353,18 @@
+@@ -1352,18 +1353,18 @@ if exit_grass and not create_new:
  # thus must be called only after Language has been set.
  set_language()
  
-+# Set shell (needs to be called before load_env())
-+check_shell()
-+
-+# Load environmental variables from the file
-+load_env()
-+
- # Create the temporary directory and session grassrc file
- create_tmp()
- 
- # Create the session grassrc file
- create_gisrc()
- 
--# Set shell (needs to be called before load_env())
--check_shell()
+-# Create the temporary directory and session grassrc file
+-create_tmp()
 -
--# Load environmental variables from the file
--load_env()
+-# Create the session grassrc file
+-create_gisrc()
 -
+ # Set shell (needs to be called before load_env())
+ check_shell()
+ 
+ # Load environmental variables from the file
+ load_env()
+ 
++# Create the temporary directory and session grassrc file
++create_tmp()
++
++# Create the session grassrc file
++create_gisrc()
++
  # Ensure GUI is set
  read_gui()
  
-Index: lib/init/variables.html
-===================================================================
---- lib/init/variables.html	(revision 65348)
-+++ lib/init/variables.html	(working copy)
-@@ -272,15 +272,27 @@
+--- a/lib/init/variables.html
++++ b/lib/init/variables.html
+@@ -272,15 +272,27 @@ PERMANENT
  
    <dt>GRASS_VECTOR_TEMPORARY</dt>
    <dd>[vectorlib]<br> If the environment variable
@@ -79,7 +74,7 @@ Index: lib/init/variables.html
    
    <dt>GRASS_WXBUNDLED</dt>
    <dd>[wxGUI]<br>
-@@ -317,7 +329,14 @@
+@@ -317,7 +329,14 @@ PERMANENT
      If OpenMP support is enabled this limits the number of threads.
      The default is set to the number of CPUs on the system.
      Setting to '1' effectively disables parallel processing.</dd>
@@ -95,11 +90,9 @@ Index: lib/init/variables.html
    <dt>TMPDIR, TEMP, TMP</dt>
    <dd>[Various GRASS GIS commands and wxGUI]<br>
    <!-- what about Windows %TEMP% and http://trac.osgeo.org/grass/ticket/560#comment:21 ? -->
-Index: lib/init/clean_temp.c
-===================================================================
---- lib/init/clean_temp.c	(revision 65348)
-+++ lib/init/clean_temp.c	(working copy)
-@@ -135,7 +135,7 @@
+--- a/lib/init/clean_temp.c
++++ b/lib/init/clean_temp.c
+@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
  
      /* Get the mapset temp directory */
      G_temp_element(element);
@@ -108,10 +101,8 @@ Index: lib/init/clean_temp.c
  
      /* get user id and current time in seconds */
  #ifdef __MINGW32__
-Index: lib/gis/rename.c
-===================================================================
---- lib/gis/rename.c	(revision 65348)
-+++ lib/gis/rename.c	(working copy)
+--- a/lib/gis/rename.c
++++ b/lib/gis/rename.c
 @@ -3,7 +3,7 @@
   *
   * \brief GIS Library - Rename file functions.
@@ -155,10 +146,8 @@ Index: lib/gis/rename.c
  }
  
  /*!
-Index: lib/gis/mapset_msc.c
-===================================================================
---- lib/gis/mapset_msc.c	(revision 65348)
-+++ lib/gis/mapset_msc.c	(working copy)
+--- a/lib/gis/mapset_msc.c
++++ b/lib/gis/mapset_msc.c
 @@ -19,30 +19,59 @@
  #include <grass/gis.h>
  #include <grass/glocale.h>
@@ -172,6 +161,8 @@ Index: lib/gis/mapset_msc.c
 -   will check for the existence of the element and
 -   do nothing if it is found so this routine
 -   can be called even if the element already exists.
+-
+-   \param element element to be created in mapset
 +   Make the specified element in the current mapset will check for the
 +   existence of the element and do nothing if it is found so this
 +   routine can be called even if the element already exists.
@@ -180,8 +171,6 @@ Index: lib/gis/mapset_msc.c
 +   
 +   \param p_element element to be created in mapset
  
--   \param element element to be created in mapset
--
 -   \return 0 ?
 -   \return ?
 +   \return 0 no element defined
@@ -229,7 +218,7 @@ Index: lib/gis/mapset_msc.c
      while (*p)
  	p++;
      /* add trailing slash if missing */
-@@ -75,10 +104,10 @@
+@@ -75,10 +104,10 @@ int G_make_mapset_element(const char *p_
     \brief Create misc element in the current mapset.
  
     \param dir directory path
@@ -243,10 +232,8 @@ Index: lib/gis/mapset_msc.c
   */
  int G__make_mapset_element_misc(const char *dir, const char *name)
  {
-Index: lib/gis/open.c
-===================================================================
---- lib/gis/open.c	(revision 65348)
-+++ lib/gis/open.c	(working copy)
+--- a/lib/gis/open.c
++++ b/lib/gis/open.c
 @@ -3,7 +3,7 @@
   * 
   * \brief GIS Library - Open file functions
@@ -256,7 +243,7 @@ Index: lib/gis/open.c
   *
   * This program is free software under the GNU General Public
   * License (>=v2). Read the file COPYING that comes with GRASS
-@@ -53,11 +53,18 @@
+@@ -53,11 +53,18 @@ static int G__open(const char *element,
  		   const char *name, const char *mapset, int mode)
  {
      int fd;
@@ -276,7 +263,7 @@ Index: lib/gis/open.c
  
      /* READ */
      if (mode == 0) {
-@@ -71,13 +78,13 @@
+@@ -71,13 +78,13 @@ static int G__open(const char *element,
  	    mapset = xmapset;
  	}
  
@@ -297,7 +284,7 @@ Index: lib/gis/open.c
  	if ((fd = open(path, 0)) < 0)
  	    G_warning(_("G__open(read): Unable to open '%s': %s"),
  	              path, strerror(errno));
-@@ -98,10 +105,11 @@
+@@ -98,10 +105,11 @@ static int G__open(const char *element,
  	if (*name && G_legal_filename(name) == -1)
  	    return -1;
  
@@ -312,10 +299,8 @@ Index: lib/gis/open.c
  	    close(open(path, O_WRONLY | O_CREAT | O_TRUNC, 0666));
  	}
  
-Index: lib/gis/file_name.c
-===================================================================
---- lib/gis/file_name.c	(revision 65348)
-+++ lib/gis/file_name.c	(working copy)
+--- a/lib/gis/file_name.c
++++ b/lib/gis/file_name.c
 @@ -3,28 +3,32 @@
  
     \brief GIS library - Determine GRASS data base file name
@@ -363,7 +348,62 @@ Index: lib/gis/file_name.c
 -    char xmapset[GMAPSET_MAX];
 -    const char *pname = name;
 -    char *location = G__location_path();
+-
+-    /*
+-     * if a name is given, build a file name
+-     * must split the name into name, mapset if it is
+-     * in the name@mapset format
+-     */
+-    if (name && *name && G_name_is_fully_qualified(name, xname, xmapset)) {
+-	pname = xname;
+-	sprintf(path, "%s/%s", location, xmapset);
+-    }
+-    else if (mapset && *mapset)
+-	sprintf(path, "%s/%s", location, mapset);
+-    else
+-	sprintf(path, "%s/%s", location, G_mapset());
+-
+-    G_free(location);
+-
+-    if (!element && !pname)
+-        return path;
+-    
+-    if (element && *element) {
+-	strcat(path, "/");
+-	strcat(path, element);
+-    }
 +    return file_name(path, NULL, element, name, mapset, NULL);
++}
+ 
+-    if (pname && *pname) {
+-	strcat(path, "/");
+-	strcat(path, pname);
+-    }
++/*!
++  \brief Builds full path names to GIS misc data files
+ 
+-    G_debug(2, "G_file_name(): path = %s", path);
+-    
+-    return path;
+-}
++  \param[out] path buffer to hold resultant full path to file
++  \param dir misc directory
++  \param element database element (eg, "cell", "cellhd", "vector", etc)
++  \param name name of file to build path to (fully qualified names allowed)
++  \param mapset mapset name
+ 
++  \return pointer to <i>path</i> buffer
++*/
+ char *G_file_name_misc(char *path,
+ 			const char *dir,
+ 			const char *element,
+ 			const char *name, const char *mapset)
+ {
+-    char xname[GNAME_MAX];
+-    char xmapset[GMAPSET_MAX];
+-    const char *pname = name;
+-    char *location = G__location_path();
++    return file_name(path, dir, element, name, mapset, NULL);
 +}
  
 -    /*
@@ -380,44 +420,18 @@ Index: lib/gis/file_name.c
 -    else
 -	sprintf(path, "%s/%s", location, G_mapset());
 +/*!
-+  \brief Builds full path names to GIS misc data files
++  \brief Builds full path names to GIS data files in temporary directory
  
 -    G_free(location);
-+  \param[out] path buffer to hold resultant full path to file
-+  \param dir misc directory
-+  \param element database element (eg, "cell", "cellhd", "vector", etc)
-+  \param name name of file to build path to (fully qualified names allowed)
-+  \param mapset mapset name
- 
--    if (!element && !pname)
--        return path;
--    
--    if (element && *element) {
--	strcat(path, "/");
--	strcat(path, element);
--    }
-+  \return pointer to <i>path</i> buffer
-+*/
-+char *G_file_name_misc(char *path,
-+			const char *dir,
-+			const char *element,
-+			const char *name, const char *mapset)
-+{
-+    return file_name(path, dir, element, name, mapset, NULL);
-+}
- 
--    if (pname && *pname) {
--	strcat(path, "/");
--	strcat(path, pname);
-+/*!
-+  \brief Builds full path names to GIS data files in temporary directory
-+
 +  By default temporary directory is located
 +  $LOCATION/$MAPSET/.tmp/$HOSTNAME. If GRASS_TMPDIR_MAPSET is set to
 +  "0", the temporary directory is located in TMPDIR (environmental
 +  variable defined by the user or GRASS initialization script if not
 +  given).
-+
+ 
+-    if (dir && *dir) {
+-	strcat(path, "/");
+-	strcat(path, dir);
 +  \param[out] path buffer to hold resultant full path to file
 +  \param element database element (eg, "cell", "cellhd", "vector", etc)
 +  \param name name of file to build path to (fully qualified names allowed)
@@ -436,42 +450,22 @@ Index: lib/gis/file_name.c
 +    if (env && strcmp(env, "0") == 0) {
 +        tmp_path = getenv("TMPDIR");
      }
--
--    G_debug(2, "G_file_name(): path = %s", path);
-     
--    return path;
++    
 +    return file_name(path, NULL, element, name, mapset, tmp_path);
- }
++}
  
--char *G_file_name_misc(char *path,
--			const char *dir,
--			const char *element,
--			const char *name, const char *mapset)
+-    if (pname && *pname) {
+-	strcat(path, "/");
+-	strcat(path, pname);
 +char *file_name(char *path,
 +                const char *dir, const char *element, const char *name,
 +                const char *mapset, const char *base)
- {
--    char xname[GNAME_MAX];
--    char xmapset[GMAPSET_MAX];
-     const char *pname = name;
--    char *location = G__location_path();
--
--    /*
--     * if a name is given, build a file name
--     * must split the name into name, mapset if it is
--     * in the name@mapset format
--     */
--    if (name && *name && G_name_is_fully_qualified(name, xname, xmapset)) {
--	pname = xname;
--	sprintf(path, "%s/%s", location, xmapset);
++{
++    const char *pname = name;
 +    
 +    if (base && *base) {
 +        sprintf(path, "%s", base);
-     }
--    else if (mapset && *mapset)
--	sprintf(path, "%s/%s", location, mapset);
--    else
--	sprintf(path, "%s/%s", location, G_mapset());
++    }
 +    else {
 +        char xname[GNAME_MAX];
 +        char xmapset[GMAPSET_MAX];
@@ -491,33 +485,24 @@ Index: lib/gis/file_name.c
 +        else
 +            sprintf(path, "%s/%s", location, G_mapset());
 +        G_free(location);
-+    }
+     }
  
--    G_free(location);
--
--    if (dir && *dir) {
+-    if (element && *element) {
 +    if (dir && *dir) { /* misc element */
  	strcat(path, "/");
- 	strcat(path, dir);
--    }
- 
--    if (pname && *pname) {
--	strcat(path, "/");
--	strcat(path, pname);
--    }
+-	strcat(path, element);
++	strcat(path, dir);
++
 +        if (pname && *pname) {
 +            strcat(path, "/");
 +            strcat(path, pname);
 +        }
- 
--    if (element && *element) {
--	strcat(path, "/");
--	strcat(path, element);
++
 +        if (element && *element) {
 +            strcat(path, "/");
 +            strcat(path, element);
 +        }
-     }
++    }
 +    else {
 +        if (element && *element) {
 +            strcat(path, "/");
@@ -528,16 +513,14 @@ Index: lib/gis/file_name.c
 +            strcat(path, "/");
 +            strcat(path, pname);
 +        }
-+    }
+     }
  
 +    G_debug(2, "G_file_name(): path = %s", path);
 +    
      return path;
  }
-Index: lib/gis/remove.c
-===================================================================
---- lib/gis/remove.c	(revision 65348)
-+++ lib/gis/remove.c	(working copy)
+--- a/lib/gis/remove.c
++++ b/lib/gis/remove.c
 @@ -21,7 +21,6 @@
  #include <dirent.h>
  #include <grass/gis.h>
@@ -546,7 +529,7 @@ Index: lib/gis/remove.c
  static int G__remove(int misc, const char *dir, const char *element,
  		     const char *name);
  
-@@ -95,14 +94,23 @@
+@@ -95,14 +94,23 @@ static int G__remove(int misc, const cha
      if (access(path, 0) != 0)
  	return 0;
  
@@ -573,7 +556,7 @@ Index: lib/gis/remove.c
  {
      DIR *dirp;
      struct dirent *dp;
-@@ -110,21 +118,21 @@
+@@ -110,21 +118,21 @@ static int recursive_remove(const char *
      char path2[GPATH_MAX];
  
      if (G_lstat(path, &sb))
@@ -600,10 +583,8 @@ Index: lib/gis/remove.c
 -    return rmdir(path) == 0 ? 0 : 1;
 +    return rmdir(path) == 0 ? 0 : -1;
  }
-Index: lib/gis/tempfile.c
-===================================================================
---- lib/gis/tempfile.c	(revision 65348)
-+++ lib/gis/tempfile.c	(working copy)
+--- a/lib/gis/tempfile.c
++++ b/lib/gis/tempfile.c
 @@ -3,7 +3,7 @@
   *
   * \brief GIS Library - Temporary file functions.
@@ -622,7 +603,7 @@ Index: lib/gis/tempfile.c
  #include <grass/gis.h>
  
  #include "local_proto.h"
-@@ -83,10 +85,12 @@
+@@ -83,10 +85,12 @@ char *G_tempfile_pid(int pid)
      do {
  	int uniq = G_counter_next(&unique);
  	sprintf(name, "%d.%d", pid, uniq);
@@ -636,7 +617,7 @@ Index: lib/gis/tempfile.c
      return G_store(path);
  }
  
-@@ -97,7 +101,7 @@
+@@ -97,7 +101,7 @@ char *G_tempfile_pid(int pid)
   */
  void G_temp_element(char *element)
  {
@@ -645,7 +626,7 @@ Index: lib/gis/tempfile.c
  
      strcpy(element, ".tmp");
      machine = G__machine_name();
-@@ -105,5 +109,13 @@
+@@ -105,5 +109,13 @@ void G_temp_element(char *element)
  	strcat(element, "/");
  	strcat(element, machine);
      }
@@ -660,11 +641,9 @@ Index: lib/gis/tempfile.c
 +    G_debug(2, "G_temp_element(): %s (GRASS_TMPDIR_MAPSET=%s)",
 +            element, env ? env : "");
  }
-Index: lib/raster/close.c
-===================================================================
---- lib/raster/close.c	(revision 65348)
-+++ lib/raster/close.c	(working copy)
-@@ -370,15 +370,15 @@
+--- a/lib/raster/close.c
++++ b/lib/raster/close.c
+@@ -370,15 +370,15 @@ static int close_new(int fd, int ok)
  
  	if (fcb->null_cur_row > 0) {
  	    /* if temporary NULL file exists, write it into cell_misc/name/null */
@@ -684,7 +663,7 @@ Index: lib/raster/close.c
  	}
  	else {
  	    remove(fcb->null_temp_name);
-@@ -436,8 +436,9 @@
+@@ -436,8 +436,9 @@ static int close_new(int fd, int ok)
      if (ok && (fcb->temp_name != NULL)) {
  	G_file_name(path, CELL_DIR, fcb->name, fcb->mapset);
  	remove(path);
@@ -696,10 +675,8 @@ Index: lib/raster/close.c
  		      fcb->temp_name, path, strerror(errno));
  	    stat = -1;
  	}
-Index: lib/vector/Vlib/local_proto.h
-===================================================================
---- lib/vector/Vlib/local_proto.h	(revision 65348)
-+++ lib/vector/Vlib/local_proto.h	(working copy)
+--- a/lib/vector/Vlib/local_proto.h
++++ b/lib/vector/Vlib/local_proto.h
 @@ -7,6 +7,9 @@
  #define CACHE_FEATURE 0
  #define CACHE_MAP     1
@@ -710,7 +687,7 @@ Index: lib/vector/Vlib/local_proto.h
  /* Internal vector library subroutines which are not part of public
     API*/
  
-@@ -27,8 +30,8 @@
+@@ -27,8 +30,8 @@ int Vect__delete(const char *, int);
  /* open.c */
  int Vect__open_old(struct Map_info *, const char *, const char *,
                     const char *, int, int, int);
@@ -721,10 +698,8 @@ Index: lib/vector/Vlib/local_proto.h
  
  /* write_nat.c */
  int V2__add_line_to_topo_nat(struct Map_info *, off_t, int,
-Index: lib/vector/Vlib/build_ogr.c
-===================================================================
---- lib/vector/Vlib/build_ogr.c	(revision 65348)
-+++ lib/vector/Vlib/build_ogr.c	(working copy)
+--- a/lib/vector/Vlib/build_ogr.c
++++ b/lib/vector/Vlib/build_ogr.c
 @@ -27,6 +27,8 @@
  #include <ogr_api.h>
  #endif
@@ -734,7 +709,7 @@ Index: lib/vector/Vlib/build_ogr.c
  /*!
     \brief Build pseudo-topology (simple features) for OGR layer
  
-@@ -124,7 +126,7 @@
+@@ -124,7 +126,7 @@ int Vect_save_fidx(struct Map_info *Map,
      length = 9;
  
      sprintf(elem, "%s/%s", GV_DIRECTORY, Map->name);
@@ -743,11 +718,9 @@ Index: lib/vector/Vlib/build_ogr.c
      G_debug(4, "Open fidx: %s", fname);
      dig_file_init(&fp);
      fp.file = fopen(fname, "w");
-Index: lib/vector/Vlib/header.c
-===================================================================
---- lib/vector/Vlib/header.c	(revision 65348)
-+++ lib/vector/Vlib/header.c	(working copy)
-@@ -77,12 +77,11 @@
+--- a/lib/vector/Vlib/header.c
++++ b/lib/vector/Vlib/header.c
+@@ -77,12 +77,11 @@ int Vect_write_header(const struct Map_i
   */
  int Vect__write_head(const struct Map_info *Map)
  {
@@ -762,7 +735,7 @@ Index: lib/vector/Vlib/header.c
      if (head_fp == NULL) {
  	G_warning(_("Unable to create header file for vector map <%s>"),
  		  Vect_get_full_name(Map));
-@@ -118,15 +117,14 @@
+@@ -118,15 +117,14 @@ int Vect__read_head(struct Map_info *Map
  {
      FILE *head_fp;
      char buff[2000];
@@ -780,11 +753,9 @@ Index: lib/vector/Vlib/header.c
      if (head_fp == NULL) {
  	G_warning(_("Unable to open header file of vector <%s>"),
  		  Vect_get_full_name(Map));
-Index: lib/vector/Vlib/open_nat.c
-===================================================================
---- lib/vector/Vlib/open_nat.c	(revision 65348)
-+++ lib/vector/Vlib/open_nat.c	(working copy)
-@@ -38,20 +38,19 @@
+--- a/lib/vector/Vlib/open_nat.c
++++ b/lib/vector/Vlib/open_nat.c
+@@ -38,20 +38,19 @@ static int check_coor(struct Map_info *M
  */
  int V1_open_old_nat(struct Map_info *Map, int update)
  {
@@ -807,7 +778,7 @@ Index: lib/vector/Vlib/open_nat.c
      
      if (Map->dig_fp.file == NULL) {
          G_warning(_("Unable to open coor file for vector map <%s>"),
-@@ -95,19 +94,19 @@
+@@ -95,19 +94,19 @@ int V1_open_old_nat(struct Map_info *Map
  */
  int V1_open_new_nat(struct Map_info *Map, const char *name, int with_z)
  {
@@ -831,7 +802,7 @@ Index: lib/vector/Vlib/open_nat.c
      /* TODO: open better */
      dig_file_init(&(Map->dig_fp));
      Map->dig_fp.file = G_fopen_new(path, GV_COOR_ELEMENT);
-@@ -119,14 +118,13 @@
+@@ -119,14 +118,13 @@ int V1_open_new_nat(struct Map_info *Map
      Map->dig_fp.file = G_fopen_modify(path, GV_COOR_ELEMENT);
      if (Map->dig_fp.file == NULL)
  	return -1;
@@ -850,10 +821,8 @@ Index: lib/vector/Vlib/open_nat.c
      
      /* set conversion matrices */
      dig_init_portable(&(Map->head.port), dig__byte_order_out());
-Index: lib/vector/Vlib/close_nat.c
-===================================================================
---- lib/vector/Vlib/close_nat.c	(revision 65348)
-+++ lib/vector/Vlib/close_nat.c	(working copy)
+--- a/lib/vector/Vlib/close_nat.c
++++ b/lib/vector/Vlib/close_nat.c
 @@ -5,7 +5,7 @@
  
     Higher level functions for reading/writing/manipulating vectors.
@@ -875,7 +844,7 @@ Index: lib/vector/Vlib/close_nat.c
  
  #include "local_proto.h"
  
-@@ -52,12 +55,115 @@
+@@ -52,12 +55,115 @@ int V1_close_nat(struct Map_info *Map)
  
      /* delete temporary map ? */
      if (Map->temporary) {
@@ -996,10 +965,8 @@ Index: lib/vector/Vlib/close_nat.c
          }
      }
  
-Index: lib/vector/Vlib/map.c
-===================================================================
---- lib/vector/Vlib/map.c	(revision 65348)
-+++ lib/vector/Vlib/map.c	(working copy)
+--- a/lib/vector/Vlib/map.c
++++ b/lib/vector/Vlib/map.c
 @@ -22,6 +22,7 @@
  #include <sys/types.h>
  #include <sys/stat.h>
@@ -1008,7 +975,7 @@ Index: lib/vector/Vlib/map.c
  
  #include <grass/glocale.h>
  #include <grass/vector.h>
-@@ -347,9 +348,9 @@
+@@ -347,9 +348,9 @@ int Vect_delete(const char *map)
  int Vect__delete(const char *map, int is_tmp)
  {
      int ret;
@@ -1020,7 +987,7 @@ Index: lib/vector/Vlib/map.c
      
      struct Map_info Map;
      
-@@ -384,7 +385,7 @@
+@@ -384,7 +385,7 @@ int Vect__delete(const char *map, int is
          }
      }
          
@@ -1029,7 +996,7 @@ Index: lib/vector/Vlib/map.c
      G_debug(1, "dbln file: %s", path);
  
      if (access(path, F_OK) == 0) {
-@@ -439,10 +440,9 @@
+@@ -439,10 +440,9 @@ int Vect__delete(const char *map, int is
              }
          }
      }
@@ -1041,7 +1008,7 @@ Index: lib/vector/Vlib/map.c
      Vect_close(&Map);
      G_debug(3, "opendir '%s'", path);
      dir = opendir(path);
-@@ -468,23 +468,30 @@
+@@ -468,23 +468,30 @@ int Vect__delete(const char *map, int is
      }
      closedir(dir);
      
@@ -1057,8 +1024,7 @@ Index: lib/vector/Vlib/map.c
 +    env = getenv("GRASS_TMPDIR_MAPSET");
 +    if (env && strcmp(env, "0") == 0) {
 +	tmp = path;
-     }
--    G_free(path);
++    }
 +    else {
 +	/* NFS can create .nfsxxxxxxxx files for those deleted 
 +	 *  -> we have to move the directory to ./tmp before it is deleted */
@@ -1071,7 +1037,8 @@ Index: lib/vector/Vlib/map.c
 +	    G_warning(_("Unable to rename directory '%s' to '%s'"), path, tmp);
 +	    return -1;
 +	}
-+    }
+     }
+-    G_free(path);
  
      G_debug(3, "remove directory '%s'", tmp);
      /* Warning: remove() fails on Windows */
@@ -1083,11 +1050,9 @@ Index: lib/vector/Vlib/map.c
          return -1;
      }
  
-Index: lib/vector/Vlib/field.c
-===================================================================
---- lib/vector/Vlib/field.c	(revision 65348)
-+++ lib/vector/Vlib/field.c	(working copy)
-@@ -385,9 +385,25 @@
+--- a/lib/vector/Vlib/field.c
++++ b/lib/vector/Vlib/field.c
+@@ -385,9 +385,25 @@ struct field_info *Vect_default_field_in
  	fi->name = G_store(buf);
  
      fi->key = G_store(GV_KEY_COLUMN);	/* Should be: id/fid/gfid/... ? */
@@ -1114,7 +1079,7 @@ Index: lib/vector/Vlib/field.c
      return fi;
  }
  
-@@ -560,7 +576,7 @@
+@@ -560,7 +576,7 @@ static int read_dblinks_nat(struct Map_i
      char file[1024], buf[2001];
      char tab[1024], col[1024], db[1024], drv[1024], fldstr[1024], *fldname;
      int fld;
@@ -1123,7 +1088,7 @@ Index: lib/vector/Vlib/field.c
      int row, rule;
      struct dblinks *dbl;
      char **tokens;
-@@ -569,9 +585,8 @@
+@@ -569,9 +585,8 @@ static int read_dblinks_nat(struct Map_i
      dbl = Map->dblnk;
  
      /* Read dblink for native format */
@@ -1134,7 +1099,7 @@ Index: lib/vector/Vlib/field.c
      if (fd == NULL) {		/* This may be correct, no tables defined */
  	G_debug(1, "Cannot open vector database definition file");
  	return -1;
-@@ -892,7 +907,7 @@
+@@ -892,7 +907,7 @@ int Vect_write_dblinks(struct Map_info *
  {
      int i;
      FILE *fd;
@@ -1143,7 +1108,7 @@ Index: lib/vector/Vlib/field.c
      struct dblinks *dbl;
  
      if (Map->format != GV_FORMAT_NATIVE)
-@@ -904,9 +919,8 @@
+@@ -904,9 +919,8 @@ int Vect_write_dblinks(struct Map_info *
  
      dbl = Map->dblnk;
  
@@ -1154,11 +1119,9 @@ Index: lib/vector/Vlib/field.c
      if (fd == NULL) {		/* This may be correct, no tables defined */
  	G_warning(_("Unable to create database definition file for vector map <%s>"),
  		  Vect_get_name(Map));
-Index: lib/vector/Vlib/close_pg.c
-===================================================================
---- lib/vector/Vlib/close_pg.c	(revision 65348)
-+++ lib/vector/Vlib/close_pg.c	(working copy)
-@@ -127,8 +127,7 @@
+--- a/lib/vector/Vlib/close_pg.c
++++ b/lib/vector/Vlib/close_pg.c
+@@ -127,8 +127,7 @@ int V2_close_pg(struct Map_info *Map)
          
          /* delete old support files if available */
          sprintf(buf, "%s/%s", GV_DIRECTORY, Map->name);
@@ -1168,11 +1131,9 @@ Index: lib/vector/Vlib/close_pg.c
          if (access(file_path, F_OK) == 0) /* file exists? */
              unlink(file_path);
          
-Index: lib/vector/Vlib/build.c
-===================================================================
---- lib/vector/Vlib/build.c	(revision 65348)
-+++ lib/vector/Vlib/build.c	(working copy)
-@@ -998,7 +998,7 @@
+--- a/lib/vector/Vlib/build.c
++++ b/lib/vector/Vlib/build.c
+@@ -998,7 +998,7 @@ int Vect_build_partial(struct Map_info *
  int Vect_save_topo(struct Map_info *Map)
  {
      struct Plus_head *plus;
@@ -1181,7 +1142,7 @@ Index: lib/vector/Vlib/build.c
      struct gvfile fp;
  
      G_debug(1, "Vect_save_topo()");
-@@ -1007,9 +1007,8 @@
+@@ -1007,9 +1007,8 @@ int Vect_save_topo(struct Map_info *Map)
      plus = &(Map->plus);
      dig_file_init(&fp);
  
@@ -1192,7 +1153,7 @@ Index: lib/vector/Vlib/build.c
      if (fp.file == NULL) {
  	G_warning(_("Unable to create topo file for vector map <%s>"), Map->name);
  	return 0;
-@@ -1247,7 +1246,7 @@
+@@ -1247,7 +1246,7 @@ int Vect_build_sidx_from_topo(const stru
  int Vect_save_sidx(struct Map_info *Map)
  {
      struct Plus_head *plus;
@@ -1201,7 +1162,7 @@ Index: lib/vector/Vlib/build.c
  
      G_debug(1, "Vect_save_spatial_index()");
  
-@@ -1261,11 +1260,10 @@
+@@ -1261,11 +1260,10 @@ int Vect_save_sidx(struct Map_info *Map)
      /* new or update mode ? */
      if (plus->Spidx_new == TRUE) {
  	/*  write out rtrees to sidx file  */
@@ -1214,11 +1175,9 @@ Index: lib/vector/Vlib/build.c
  	if (plus->spidx_fp.file == NULL) {
  	    G_warning(_("Unable to create spatial index file for vector map <%s>"),
  		      Vect_get_name(Map));
-Index: lib/vector/Vlib/open.c
-===================================================================
---- lib/vector/Vlib/open.c	(revision 65348)
-+++ lib/vector/Vlib/open.c	(working copy)
-@@ -163,7 +163,7 @@
+--- a/lib/vector/Vlib/open.c
++++ b/lib/vector/Vlib/open.c
+@@ -163,7 +163,7 @@ int Vect__open_old(struct Map_info *Map,
                     const char *layer, int update, int head_only, int is_tmp)
  {
      char xname[GNAME_MAX], xmapset[GMAPSET_MAX];
@@ -1227,7 +1186,7 @@ Index: lib/vector/Vlib/open.c
      FILE *fp;
      int level, level_request;
      int format, ret;
-@@ -174,7 +174,7 @@
+@@ -174,7 +174,7 @@ int Vect__open_old(struct Map_info *Map,
              "head_only = %d, is_tmp = %d", name, mapset, layer ? layer : "NULL", update, head_only,
              is_tmp);
      
@@ -1236,7 +1195,7 @@ Index: lib/vector/Vlib/open.c
          is_tmp = getenv("GRASS_VECTOR_TEMPORARY") ? TRUE : FALSE;
          G_debug(1, "Vect__open_old(): is_tmp = %d (check GRASS_VECTOR_TEMPORARY)", is_tmp);
      }
-@@ -221,7 +221,7 @@
+@@ -221,7 +221,7 @@ int Vect__open_old(struct Map_info *Map,
              Map->mapset = G_store("");
      }
  
@@ -1245,7 +1204,7 @@ Index: lib/vector/Vlib/open.c
  
      if (!ogr_mapset) {
          /* try to find vector map (not for OGR mapset) */
-@@ -253,7 +253,8 @@
+@@ -253,7 +253,8 @@ int Vect__open_old(struct Map_info *Map,
                      return -1;
                  }
              }
@@ -1255,7 +1214,7 @@ Index: lib/vector/Vlib/open.c
              if (access(file_path, F_OK) != 0)
                  return -1;
          }
-@@ -521,26 +522,24 @@
+@@ -521,26 +522,24 @@ int Vect__open_old(struct Map_info *Map,
      if (update && !head_only) {
          char file_path[GPATH_MAX];
  
@@ -1286,7 +1245,7 @@ Index: lib/vector/Vlib/open.c
      
      return level;
  }
-@@ -791,7 +790,8 @@
+@@ -791,7 +790,8 @@ int open_new(struct Map_info *Map, const
      
      if (Map->format != GV_FORMAT_OGR_DIRECT &&
          getenv("GRASS_VECTOR_PGFILE") == NULL) { /* GRASS_VECTOR_PGFILE defined by v.out.postgis */
@@ -1296,7 +1255,7 @@ Index: lib/vector/Vlib/open.c
          
          G_debug(2, " using non-direct format");
  
-@@ -804,7 +804,9 @@
+@@ -804,7 +804,9 @@ int open_new(struct Map_info *Map, const
                  return -1;
              }
          }
@@ -1307,7 +1266,7 @@ Index: lib/vector/Vlib/open.c
              if (G_find_vector2(name, G_mapset()) != NULL) {
                  G_warning(_("Vector map <%s> already exists and will be overwritten"),
                            name);
-@@ -828,9 +830,8 @@
+@@ -828,9 +830,8 @@ int open_new(struct Map_info *Map, const
          Vect__write_head(Map);
  
          /* create history file */
@@ -1318,7 +1277,7 @@ Index: lib/vector/Vlib/open.c
          if (Map->hist_fp == NULL) {
              G_warning(_("Unable to open history file of vector map <%s>"),
                        name);
-@@ -963,14 +964,12 @@
+@@ -963,14 +964,12 @@ int Vect_open_tmp_new(struct Map_info *M
  */
  int Vect_coor_info(const struct Map_info *Map, struct Coor_info *Info)
  {
@@ -1335,7 +1294,7 @@ Index: lib/vector/Vlib/open.c
          G_debug(1, "get coor info: %s", file_path);
          if (0 != stat(file_path, &stat_buf)) {
              G_warning(_("Unable to stat file <%s>"), file_path);
-@@ -1087,7 +1086,7 @@
+@@ -1087,7 +1086,7 @@ int Vect_maptype(const struct Map_info *
  int Vect_open_topo(struct Map_info *Map, int head_only)
  {
      int err, ret;
@@ -1344,7 +1303,7 @@ Index: lib/vector/Vlib/open.c
      struct gvfile fp;
      struct Coor_info CInfo;
      struct Plus_head *Plus;
-@@ -1097,17 +1096,14 @@
+@@ -1097,17 +1096,14 @@ int Vect_open_topo(struct Map_info *Map,
  
      Plus = &(Map->plus);
  
@@ -1364,7 +1323,7 @@ Index: lib/vector/Vlib/open.c
  
      if (fp.file == NULL) {      /* topo file is not available */
          G_debug(1, "Cannot open topo file for vector '%s@%s'.",
-@@ -1186,16 +1182,14 @@
+@@ -1186,16 +1182,14 @@ int Vect_open_sidx(struct Map_info *Map,
      dig_file_init(&(Plus->spidx_fp));
  
      if (mode < 2) {
@@ -1384,7 +1343,7 @@ Index: lib/vector/Vlib/open.c
          
          if (Plus->spidx_fp.file == NULL) {  /* sidx file is not available */
              G_debug(1, "Cannot open spatial index file for vector '%s@%s'.",
-@@ -1435,16 +1429,13 @@
+@@ -1435,16 +1429,13 @@ int map_format(struct Map_info *Map)
  /*!
    \brief Get map directory name (internal use only)
  
@@ -1404,7 +1363,7 @@ Index: lib/vector/Vlib/open.c
      if (Map->temporary) {
          char path_tmp[GPATH_MAX];
          G_temp_element(path_tmp);
-@@ -1454,7 +1445,7 @@
+@@ -1454,7 +1445,7 @@ char *Vect__get_path(const struct Map_in
          sprintf(path, "%s/%s", GV_DIRECTORY, Map->name);
      }
      
@@ -1413,7 +1372,7 @@ Index: lib/vector/Vlib/open.c
  }
  
  /*!
-@@ -1467,13 +1458,17 @@
+@@ -1467,13 +1458,17 @@ char *Vect__get_path(const struct Map_in
  
    \return allocated buffer containing path
  */
@@ -1437,11 +1396,9 @@ Index: lib/vector/Vlib/open.c
 +    return file_path;
  }
 +
-Index: lib/vector/Vlib/close.c
-===================================================================
---- lib/vector/Vlib/close.c	(revision 65348)
-+++ lib/vector/Vlib/close.c	(working copy)
-@@ -323,14 +323,12 @@
+--- a/lib/vector/Vlib/close.c
++++ b/lib/vector/Vlib/close.c
+@@ -323,14 +323,12 @@ void Vect__free_offset(struct Format_inf
  
  void unlink_file(const struct Map_info *Map, const char *name)
  {
@@ -1458,11 +1415,9 @@ Index: lib/vector/Vlib/close.c
 -
 -    G_free(path);
  }
-Index: lib/vector/Vlib/cindex.c
-===================================================================
---- lib/vector/Vlib/cindex.c	(revision 65348)
-+++ lib/vector/Vlib/cindex.c	(working copy)
-@@ -472,7 +472,7 @@
+--- a/lib/vector/Vlib/cindex.c
++++ b/lib/vector/Vlib/cindex.c
+@@ -472,7 +472,7 @@ int Vect_cidx_dump(const struct Map_info
  int Vect_cidx_save(struct Map_info *Map)
  {
      struct Plus_head *plus;
@@ -1471,7 +1426,7 @@ Index: lib/vector/Vlib/cindex.c
      struct gvfile fp;
  
      G_debug(2, "Vect_cidx_save()");
-@@ -482,9 +482,8 @@
+@@ -482,9 +482,8 @@ int Vect_cidx_save(struct Map_info *Map)
      
      dig_file_init(&fp);
      
@@ -1482,7 +1437,7 @@ Index: lib/vector/Vlib/cindex.c
      if (fp.file == NULL) {
  	G_warning(_("Unable to create category index file for vector map <%s>"),
                    Vect_get_name(Map));
-@@ -517,7 +516,7 @@
+@@ -517,7 +516,7 @@ int Vect_cidx_save(struct Map_info *Map)
  int Vect_cidx_open(struct Map_info *Map, int head_only)
  {
      int ret;
@@ -1491,7 +1446,7 @@ Index: lib/vector/Vlib/cindex.c
      struct gvfile fp;
      struct Plus_head *Plus;
  
-@@ -526,17 +525,15 @@
+@@ -526,17 +525,15 @@ int Vect_cidx_open(struct Map_info *Map,
  
      Plus = &(Map->plus);
  
@@ -1512,11 +1467,9 @@ Index: lib/vector/Vlib/cindex.c
      
      if (fp.file == NULL) {	/* category index file is not available */
  	G_warning(_("Unable to open category index file for vector map <%s>"),
-Index: include/defs/gis.h
-===================================================================
---- include/defs/gis.h	(revision 65348)
-+++ include/defs/gis.h	(working copy)
-@@ -247,6 +247,7 @@
+--- a/include/defs/gis.h
++++ b/include/defs/gis.h
+@@ -247,6 +247,7 @@ void G_init_logging(void);
  char *G_file_name(char *, const char *, const char *, const char *);
  char *G_file_name_misc(char *, const char *, const char *, const char *,
  		       const char *);
@@ -1524,7 +1477,7 @@ Index: include/defs/gis.h
  
  /* find_file.c */
  const char *G_find_file(const char *, char *, const char *);
-@@ -437,6 +438,7 @@
+@@ -437,6 +438,7 @@ char *G_mapset_path(void);
  
  /* mapset_msc.c */
  int G_make_mapset_element(const char *);
@@ -1532,7 +1485,7 @@ Index: include/defs/gis.h
  int G__make_mapset_element_misc(const char *, const char *);
  int G_mapset_permissions(const char *);
  int G_mapset_permissions2(const char *, const char *, const char *);
-@@ -596,6 +598,7 @@
+@@ -596,6 +598,7 @@ void G__read_Cell_head_array(char **, st
  /* remove.c */
  int G_remove(const char *, const char *);
  int G_remove_misc(const char *, const char *, const char *);
