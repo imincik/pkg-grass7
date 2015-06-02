@@ -6,7 +6,7 @@
                  "%(lock)s>! Exiting.") % {'user': user, 'lock': gis_lock})
 -
 +    
-+    os.environ['TMPDIR'] = tmp
++    os.environ['TMPDIR'] = tmpdir
  
  def create_gisrc():
      global gisrc, gisrcrc
