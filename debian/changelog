@@ -1,3 +1,9 @@
+grass7 (7.0.0-9~precise1) precise; urgency=medium
+
+  * Fixed backported tmpdirs patch
+
+ -- Ivan Mincik <ivan.mincik@gmail.com>  Wed, 03 Jun 2015 00:34:42 +0200
+
 grass7 (7.0.0-8~precise1) precise; urgency=medium
 
   * Adding backported tmpdirs patch
