@@ -1,3 +1,9 @@
+grass7 (7.0.0-11~precise1) precise; urgency=medium
+
+  * Yet another update of tmpdirs patch 
+
+ -- Ivan Mincik <ivan.mincik@gmail.com>  Wed, 10 Jun 2015 22:05:03 +0200
+
 grass7 (7.0.0-10~precise1) precise; urgency=medium
 
   * Updating tmpdirs patch with new version
