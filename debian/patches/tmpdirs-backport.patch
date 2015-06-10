@@ -369,7 +369,7 @@
  
      /* READ */
      if (mode == 0) {
-@@ -71,13 +78,13 @@ static int G__open(const char *element,
+@@ -71,13 +78,15 @@ static int G__open(const char *element,
  	    mapset = xmapset;
  	}
  
@@ -385,12 +385,14 @@
 +            
 +            if (!mapset)
 +                return -1;
++
++            G_file_name(path, element, name, mapset);
 +        }
 +        
  	if ((fd = open(path, 0)) < 0)
  	    G_warning(_("G__open(read): Unable to open '%s': %s"),
  	              path, strerror(errno));
-@@ -98,10 +105,11 @@ static int G__open(const char *element,
+@@ -98,10 +107,11 @@ static int G__open(const char *element,
  	if (*name && G_legal_filename(name) == -1)
  	    return -1;
  
