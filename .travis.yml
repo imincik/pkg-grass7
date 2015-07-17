@@ -10,6 +10,8 @@ cache: apt
 before_install:
         - sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable -y
         - sudo apt-get update -qq
+
+install:
         - sudo apt-get install --no-install-recommends
                 autoconf2.13
                 autotools-dev
@@ -46,7 +48,7 @@ before_install:
                 liblapack-dev
                 python-numpy
 
-install:
+script:
         - ./configure --host=x86_64-linux-gnu --build=x86_64-linux-gnu
                 --prefix=/usr/lib
                 --sysconfdir=/etc
@@ -71,7 +73,8 @@ install:
                 --with-wxwidgets=/usr/bin/wx-config
                 --with-python
                 --with-cairo
-        - make
+        - make -j2
+        - make test
 
 #notifications:
 #  irc: "chat.freenode.net#grass"
