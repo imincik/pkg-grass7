@@ -1,0 +1,84 @@
+language: c
+
+compiler:
+        - gcc
+
+cache: apt
+
+before_install:
+        - sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable -y
+        - sudo apt-get update -qq
+        - sudo apt-get install --no-install-recommends
+                autoconf2.13
+                autotools-dev
+                debhelper
+                doxygen
+                fakeroot
+                flex
+                bison
+                graphviz
+                libmotif-dev
+                libcairo2-dev
+                libfftw3-dev
+                libfreetype6-dev
+                libgdal-dev
+                libgeos-dev
+                libglu1-mesa-dev
+                libjpeg-dev
+                libpng-dev
+                libtiff-dev
+                libmysqlclient-dev
+                libncurses5-dev
+                libpq-dev
+                libproj-dev
+                proj-bin
+                libreadline-dev
+                libsqlite3-dev
+                libwxgtk2.8-dev
+                libxmu-dev
+                python
+                python-wxgtk2.8
+                python-dev
+                unixodbc-dev
+                libnetcdf-dev  
+                netcdf-bin
+                dpatch
+                libblas-dev
+                liblapack-dev
+                python-numpy
+
+install:
+        ./configure --prefix=/usr/lib \
+                --sysconfdir=/etc \
+                --sharedstatedir=/var \
+                --enable-socket \
+                --enable-shared \
+                --with-postgres \
+                --with-mysql \
+                --with-cxx \
+                --with-x \
+                --with-gdal \
+                --with-freetype \
+                --with-motif \
+                --with-readline \
+                --with-nls \
+                --with-odbc \
+                --with-geos \
+                --with-lapack \
+                --with-netcdf \
+                --with-blas \
+                --with-sqlite \
+                --enable-largefile \
+                --with-freetype-includes=/usr/include/freetype2 \
+                --with-postgres-includes=$(shell pg_config --includedir) \
+                --with-mysql-includes=$(shell mysql_config --include|sed -e 's/-I//') \
+                --with-proj-share=/usr/share/proj \
+                --with-wxwidgets=/usr/bin/wx-config \
+                --with-python \
+                --with-cairo
+
+#notifications:
+#  irc: "chat.freenode.net#grass"
+#  on_failure: change
+#  on_success: change
+#  skip_join: true
