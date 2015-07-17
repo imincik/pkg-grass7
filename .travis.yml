@@ -78,7 +78,6 @@ install:
                 --with-python
                 --with-cairo
         - make
-        - make install
 
 #notifications:
 #  irc: "chat.freenode.net#grass"
