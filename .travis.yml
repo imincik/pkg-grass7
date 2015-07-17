@@ -74,7 +74,6 @@ script:
                 --with-python
                 --with-cairo
         - make -j2
-        - make test
 
 #notifications:
 #  irc: "chat.freenode.net#grass"
