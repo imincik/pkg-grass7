@@ -50,7 +50,7 @@ before_install:
                 python-numpy
 
 install:
-        ./configure --prefix=/usr/lib \
+        - ./configure --prefix=/usr/lib \
                 --sysconfdir=/etc \
                 --sharedstatedir=/var \
                 --enable-socket \
@@ -77,8 +77,8 @@ install:
                 --with-wxwidgets=/usr/bin/wx-config \
                 --with-python \
                 --with-cairo
-        make
-        make install
+        - make
+        - make install
 
 #notifications:
 #  irc: "chat.freenode.net#grass"
