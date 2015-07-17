@@ -14,12 +14,9 @@ before_install:
                 autoconf2.13
                 autotools-dev
                 debhelper
-                doxygen
                 fakeroot
                 flex
                 bison
-                graphviz
-                libmotif-dev
                 libcairo2-dev
                 libfftw3-dev
                 libfreetype6-dev
@@ -54,14 +51,11 @@ install:
                 --prefix=/usr/lib
                 --sysconfdir=/etc
                 --sharedstatedir=/var
-                --enable-socket
                 --enable-shared
                 --with-postgres
                 --with-cxx
-                --with-x
                 --with-gdal
                 --with-freetype
-                --with-motif
                 --with-readline
                 --with-nls
                 --with-odbc
