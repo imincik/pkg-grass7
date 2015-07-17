@@ -50,9 +50,7 @@ before_install:
                 python-numpy
 
 install:
-        - ./configure
-                --host=x86_64-linux-gnu \
-                --build=x86_64-linux-gnu \
+        - ./configure --host=x86_64-linux-gnu --build=x86_64-linux-gnu \
                 --prefix=/usr/lib \
                 --sysconfdir=/etc \
                 --sharedstatedir=/var \
